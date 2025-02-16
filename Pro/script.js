@@ -14,6 +14,11 @@ function Map(){
     map.on("click",function(e){
         mark(e.latlng);
     });
+
+    // L.control.search({
+    //      position: 'topright' 
+    // }
+
 }
 
 const mark = (ee)=>{
@@ -45,19 +50,8 @@ function getRoute() {
         waypoints :[
             L.latLng(start.lat,start.lng),
             L.latLng(end.lat,end.lng)
-        ],
-        lineOptions: {
-            styles: [
-                {
-                    color: 'blue',            // Set the route line color
-                    weight: 5,                // Set the route line thickness
-                    opacity: 0.7,             // Set the route line opacity
-                    dashArray: '5, 10',       // Set dashed line pattern
-                    lineJoin: 'round'         // Smooth corners of the route line
-                }
-            ]
-        }
-    }).addTo(map);
+        ]
+    }).addTo(map); 
 
     routingControl.on('routesfound',function(e){
         let routes = e.routes[0];
