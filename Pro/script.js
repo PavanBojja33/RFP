@@ -1,6 +1,7 @@
 var map;
 var startMarker=null;
 var endMarker=null;
+const btn = document.querySelector("#btn");
 
 function Map(){
 
@@ -13,19 +14,14 @@ function Map(){
     map.on("click",function(e){
         mark(e.latlng);
     });
-    
-    map.on('locationfound' , function(e){
-        L.marker(e.latlng).addTo(map).bindPopup("Current Location").openPopup();
-    });
 
-    map.on('locationerror' , function(e){
-        alert('Unable to fetch location');
-    });
-    
-    // getCurLoc();
+    // L.control.search({
+    //      position: 'topright' 
+    // }
+
 }
 
-function mark(ee){
+const mark = (ee)=>{
     if(!startMarker){
         startMarker=L.marker(ee).addTo(map);
         startMarker.bindPopup("Start Location").openPopup();
@@ -35,28 +31,53 @@ function mark(ee){
         endMarker.bindPopup("End Location").openPopup();
         getRoute();
     }
-}
+};
 
 function getCurLoc(){
     map.locate({setView : true , maxZoom:10}); 
-}
 
-function getRoute(){
-    L.Routing.control({
-        waypoints: [
-            L.latLng(startMarker.getLatLng().lat , startMarker.getLatLng().lng),
-            L.latLng(endMarker.getLatLng().lat , endMarker.getLatLng().lng)
-        ]
-    }).on('routesfound',function(e){
-        e.routes[0].coordinates.forEach(function(coord,index){
-            setTimeout(()=>{
-                marker.setLatLng([coord.lat,coord.lng])
-            },100*index);
-        })
-    })
-    
-    .addTo(map);
 }
+let routingControl;
+
+function getRoute() {
+    let start =startMarker.getLatLng();
+    let end = endMarker.getLatLng();
+    if(routingControl){
+        map.removeControl(routingControl);  
+    }
+
+    routingControl = L.Routing.control({
+        waypoints :[
+            L.latLng(start.lat,start.lng),
+            L.latLng(end.lat,end.lng)
+        ]
+    }).addTo(map); 
+
+    routingControl.on('routesfound',function(e){
+        let routes = e.routes[0];
+        let coord = routes.coordinates;
+
+        console.log(routes);
+    });
+};
+
+btn.addEventListener("click",() =>{
+    if(startMarker){
+        map.removeLayer(startMarker);
+        startMarker=null;
+    }
+
+    if(endMarker){
+        map.removeLayer(endMarker);
+        endMarker=null;
+    }
+
+    if(routingControl){
+        map.removeControl(routingControl);
+        routingControl=null;
+    }
+    map.setView([17.3850, 78.4867], 6);
+});
 
 Map();  
 
