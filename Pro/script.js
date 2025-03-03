@@ -1,7 +1,9 @@
 var map;
 var startMarker=null;
 var endMarker=null;
+var currMarker=null;
 const btn = document.querySelector("#btn");
+
 
 function Map(){
 
@@ -16,20 +18,31 @@ function Map(){
     });
 
     
+
+
+
+var button= L.control({position: 'bottomleft'});
+
+    button.onAdd = function(map){
+    var div=L.DomUtil.create('div','currbtn')
+    div.innerHTML='<button>CURR</button>';
+    div.querySelector('button').onclick = function(){
+        map.locate({
+            setView:true,
+            maxZoom:10
+        });
+        
+    };
+    return div;
+};
+
+button.addTo(map);
+
+map.on('locationfound',function(e){
+    var latlng = e.latlng;
+    currMarker=L.marker(latlng).addTo(map).bindPopup("You are here").openPopup();
+});
 }
-
-const curr = document.querySelector('#curr');
-curr.addEventListener('click',() => {
-    map.locate({
-        setView:true,
-        maxZoom:10
-    })  
-    map.on('locationfound',function(e){
-        var latlng = e.latlng;
-        L.marker(latlng).addTo(map).bindPopup("You are here").openPopup();
-    })
-})
-
 const mark = (ee)=>{
     if(!startMarker){
         startMarker=L.marker(ee).addTo(map);
@@ -39,13 +52,11 @@ const mark = (ee)=>{
         endMarker=L.marker(ee).addTo(map);
         endMarker.bindPopup("End Location").openPopup();
         getRoute();
-    }
+    }   
 };
 
-function getCurLoc(){
-    map.locate({setView : true , maxZoom:10}); 
 
-}
+
 let routingControl;
 
 function getRoute() {
@@ -84,6 +95,10 @@ btn.addEventListener("click",() =>{
     if(routingControl){
         map.removeControl(routingControl);
         routingControl=null;
+    }
+    if(currMarker){
+        map.removeLayer(currMarker);
+        currMarker=null;
     }
     map.setView([17.3850, 78.4867], 6);
 });
