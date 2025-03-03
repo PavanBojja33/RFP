@@ -15,11 +15,20 @@ function Map(){
         mark(e.latlng);
     });
 
-    // L.control.search({
-    //      position: 'topright' 
-    // }
-
+    
 }
+
+const curr = document.querySelector('#curr');
+curr.addEventListener('click',() => {
+    map.locate({
+        setView:true,
+        maxZoom:10
+    })  
+    map.on('locationfound',function(e){
+        var latlng = e.latlng;
+        L.marker(latlng).addTo(map).bindPopup("You are here").openPopup();
+    })
+})
 
 const mark = (ee)=>{
     if(!startMarker){
