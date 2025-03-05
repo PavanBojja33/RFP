@@ -17,31 +17,41 @@ function Map(){
         mark(e.latlng);
     });
 
+
+    const { GeoSearchControl, OpenStreetMapProvider } = window.GeoSearch;
+
+    const provider = new OpenStreetMapProvider();
     
-
-
-
-var button= L.control({position: 'bottomleft'});
-
+    const searchFirst = new GeoSearchControl({
+        provider: provider,
+        style: 'bar',  
+        autoClose: true,  
+        searchLabel: 'Search for a place...',  // Placeholder in the search bar
+    });
+    
+    map.addControl(searchFirst); 
+    
+    var button= L.control({position: 'bottomleft'});
+    
     button.onAdd = function(map){
-    var div=L.DomUtil.create('div','currbtn')
-    div.innerHTML='<button>CURR</button>';
-    div.querySelector('button').onclick = function(){
-        map.locate({
-            setView:true,
-            maxZoom:10
-        });
-        
+        var div=L.DomUtil.create('div','currbtn')
+        div.innerHTML='<button>CURR</button>';
+        div.querySelector('button').onclick = function(){
+            map.locate({
+                setView:true,
+                maxZoom:10
+            });
+            
+        };
+        return div;
     };
-    return div;
-};
-
-button.addTo(map);
-
-map.on('locationfound',function(e){
-    var latlng = e.latlng;
-    currMarker=L.marker(latlng).addTo(map).bindPopup("You are here").openPopup();
-});
+    
+    button.addTo(map);
+    
+    map.on('locationfound',function(e){
+        var latlng = e.latlng;
+        currMarker=L.marker(latlng).addTo(map).bindPopup("You are here").openPopup();
+    });
 }
 const mark = (ee)=>{
     if(!startMarker){

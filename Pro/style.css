@@ -8,17 +8,9 @@
     width: 100vw;
 }
 
-/* .leaflet-routing-container {
-    font-size: 20px; /* Increase overall font size */
-    /* min-width: 500px; /* Optional: Increase the container width */
-    /* min-height: 100vh;
-    background-color: rgb(60, 184, 190); */
-    
-/* } */ 
+
 
 button{
     height: 2rem;
-    /* width: 4rem; */
-    /* margin: 1rem 0 0 2rem; */
     font-size: 1rem;
 }
