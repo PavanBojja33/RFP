@@ -7,51 +7,42 @@ const btn = document.querySelector("#btn");
 function Map() {
     map = L.map('map').setView([17.3850, 78.4867], 6);
 
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    // Tile Layer - OpenStreetMap
+    const osmTileLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 15,
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(map);
 
+    // Tile Layer - Satellite (Example with Esri)
+    const satelliteTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.esri.com/">Esri</a>'
+    });
+
+    // Layer control for switching between different tile layers
+    L.control.layers({
+        "OpenStreetMap": osmTileLayer,
+        "Satellite": satelliteTileLayer
+    }).addTo(map);
+
+    // Adding a search bar
     const { GeoSearchControl, OpenStreetMapProvider } = window.GeoSearch;
     const provider = new OpenStreetMapProvider();
-
-    const seachFirst = new GeoSearchControl({
+    const searchControl = new GeoSearchControl({
         provider: provider,
         style: 'bar',
         autoClose: true,
-        searchLabel: 'Search for a place...',
+        searchLabel: 'Search for a place...'
     });
 
-    const seachSecond = new GeoSearchControl({
-        provider: provider,
-        style: 'bar',
-        autoClose: true,
-        searchLabel: 'Search for another place...',
-    });
+    map.addControl(searchControl);
 
-    // Handle the results for the first search control
-    seachFirst.on('results', function (data) {
-        if (data.results.length > 0) {
-            mark(data.results[0].latlng); // Get the first result's latlng
-        }
-    });
-
-    // Handle the results for the second search control
-    seachSecond.on('results', function (data) {
-        if (data.results.length > 0) {
-            mark(data.results[0].latlng); // Get the first result's latlng
-        }
-    });
-
-    // Add both search controls to the map
-    map.addControl(seachFirst);
-    map.addControl(seachSecond);
-
+    // Current Location Button
     var button = L.control({ position: 'bottomleft' });
 
     button.onAdd = function (map) {
         var div = L.DomUtil.create('div', 'currbtn');
-        div.innerHTML = '<button>CURR</button>';
+        div.innerHTML = '<button>Current Location</button>';
         div.querySelector('button').onclick = function () {
             map.locate({
                 setView: true,
@@ -132,4 +123,4 @@ btn.addEventListener("click", () => {
     map.setView([17.3850, 78.4867], 6); // Reset to the original center and zoom level
 });
 
-Map();
+Map();   
