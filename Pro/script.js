@@ -1,9 +1,10 @@
-var map;
-var startMarker = null;
-var endMarker = null;
-var currMarker = null;
-const btn = document.querySelector("#btn");
+let map;
+let startMarker = null;
+let endMarker = null;
+let currMarker = null;
+let routingControl;
 
+// Initialize map
 function Map() {
     map = L.map('map').setView([17.3850, 78.4867], 6);
 
@@ -13,29 +14,44 @@ function Map() {
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(map);
 
-    // Tile Layer - Satellite (Example with Esri)
-    const satelliteTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.esri.com/">Esri</a>'
-    });
-
-    // Layer control for switching between different tile layers
-    L.control.layers({
-        "OpenStreetMap": osmTileLayer,
-        "Satellite": satelliteTileLayer
-    }).addTo(map);
-
-    // Adding a search bar
+    // Adding search bar for start and end locations
     const { GeoSearchControl, OpenStreetMapProvider } = window.GeoSearch;
     const provider = new OpenStreetMapProvider();
-    const searchControl = new GeoSearchControl({
+
+    // Search control for start location
+    const searchControlStart = new GeoSearchControl({
         provider: provider,
         style: 'bar',
         autoClose: true,
-        searchLabel: 'Search for a place...'
+        searchLabel: 'Search for a start location...',
     });
 
-    map.addControl(searchControl);
+    // Search control for end location
+    const searchControlEnd = new GeoSearchControl({
+        provider: provider,
+        style: 'bar',
+        autoClose: true,
+        searchLabel: 'Search for an end location...',
+    });
+
+    map.addControl(searchControlStart);
+    map.addControl(searchControlEnd);
+
+    // Handle result of searching for start location
+    map.on('geosearch/showlocation', function (e) {
+        let result = e.location;
+        if (result) {
+            placeMarker(result.latlng, 'start');
+        }
+    });
+
+    // Handle result of searching for end location
+    map.on('geosearch/showlocation', function (e) {
+        let result = e.location;
+        if (result) {
+            placeMarker(result.latlng, 'end');
+        }
+    });
 
     // Current Location Button
     var button = L.control({ position: 'bottomleft' });
@@ -61,45 +77,81 @@ function Map() {
         }
         currMarker = L.marker(latlng).addTo(map).bindPopup("You are here").openPopup();
     });
+
+    // Adding "Calculate Shortest Path" button on the map
+    const calculateRouteButton = L.control({ position: 'topright' });
+    calculateRouteButton.onAdd = function (map) {
+        var div = L.DomUtil.create('div', 'calculateRouteBtn');
+        div.innerHTML = '<button>Calculate Shortest Path</button>';
+        div.querySelector('button').onclick = calculateRoute;
+        return div;
+    };
+    calculateRouteButton.addTo(map);
+
+    // Adding "Reset Map" button on the map
+    const resetButton = L.control({ position: 'bottomright' });
+    resetButton.onAdd = function (map) {
+        var div = L.DomUtil.create('div', 'resetBtn');
+        div.innerHTML = '<button>Reset Map</button>';
+        div.querySelector('button').onclick = resetMap;
+        return div;
+    };
+    resetButton.addTo(map);
 }
 
-const mark = (ee) => {
-    if (!startMarker) {
-        startMarker = L.marker(ee).addTo(map);
-        startMarker.bindPopup("Start Location").openPopup();
+// Function to place a marker for the searched location (start or end)
+function placeMarker(latlng, locationType) {
+    if (locationType === 'start') {
+        if (!startMarker) {
+            startMarker = L.marker(latlng).addTo(map);
+            startMarker.bindPopup("Start Location").openPopup();
+        } else {
+            alert('Start location already selected.');
+        }
+    } else if (locationType === 'end') {
+        if (!endMarker) {
+            endMarker = L.marker(latlng).addTo(map);
+            endMarker.bindPopup("End Location").openPopup();
+        } else {
+            alert('End location already selected.');
+        }
     }
-    else if (!endMarker) {
-        endMarker = L.marker(ee).addTo(map);
-        endMarker.bindPopup("End Location").openPopup();
-        getRoute();
+}
+
+// Function to calculate and display the shortest route between start and end locations
+function calculateRoute() {
+    if (!startMarker || !endMarker) {
+        alert("Please select both start and end locations first.");
+        return;
     }
-};
 
-let routingControl;
-
-function getRoute() {
     let start = startMarker.getLatLng();
     let end = endMarker.getLatLng();
+
+    // If routing control exists, remove the previous route
     if (routingControl) {
         map.removeControl(routingControl);
     }
 
+    // Create a new route using Leaflet Routing Machine
     routingControl = L.Routing.control({
         waypoints: [
             L.latLng(start.lat, start.lng),
             L.latLng(end.lat, end.lng)
-        ]
+        ],
+        routeWhileDragging: true, // Allow route to update while dragging markers
+        createMarker: function() { return null; } // Prevent creating additional markers on the route
     }).addTo(map);
 
     routingControl.on('routesfound', function (e) {
         let routes = e.routes[0];
         let coord = routes.coordinates;
-        console.log(routes);
+        console.log("Route Coordinates:", coord); // Optionally log route coordinates
     });
-};
+}
 
-// Reset functionality
-btn.addEventListener("click", () => {
+// Reset functionality (clear markers, route, etc.)
+function resetMap() {
     if (startMarker) {
         map.removeLayer(startMarker);
         startMarker = null;
@@ -121,6 +173,7 @@ btn.addEventListener("click", () => {
     }
 
     map.setView([17.3850, 78.4867], 6); // Reset to the original center and zoom level
-});
+}
 
-Map();   
+// Initialize the map
+Map();
