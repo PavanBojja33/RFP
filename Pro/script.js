@@ -177,3 +177,4 @@ function resetMap() {
 
 // Initialize the map
 Map();
+// end of the exam 
